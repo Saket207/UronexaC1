@@ -1,0 +1,11 @@
+matplotlib
+numpyencoder
+scipy
+imutils
+numpy
+opencv-python
+joblib
+scikit-image
+Pillow
+scikit-learn
+Flask
