@@ -1,0 +1,54 @@
+# === Node.js ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+env/
+.venv/
+
+# === Hardhat / Blockchain Build Outputs ===
+artifacts/
+cache/
+typechain/
+typechain-types/
+
+# === Flask ===
+instance/
+*.db
+uploads/
+debug_images/
+static/debug_images/
+
+# === Vite / React Build ===
+dist/
+.dist/
+
+# === IDE & OS ===
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# === Logs ===
+*.log
+*.log.*
+
+# === Environment ===
+.env
+.env.local
+.env.*.local

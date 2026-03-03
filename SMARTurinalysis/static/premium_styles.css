@@ -1,0 +1,148 @@
+/* --- AI Clinical Advisory Card (Ultra-Premium Overlay) --- */
+.clinical-advisory-card {
+    margin-top: 2.5rem !important;
+    background: rgba(15, 23, 42, 0.45) !important;
+    backdrop-filter: blur(25px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important;
+    overflow: hidden !important;
+    animation: slideUpFadePremium 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+}
+
+.advisory-header {
+    padding: 1.8rem !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 1.5rem !important;
+}
+
+.physician-avatar {
+    width: 52px !important;
+    height: 52px !important;
+    background: rgba(0, 240, 255, 0.05) !important;
+    border: 1.5px solid rgba(0, 240, 255, 0.3) !important;
+    border-radius: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #00f0ff !important;
+    box-shadow: 0 0 25px rgba(0, 240, 255, 0.2) !important;
+    flex-shrink: 0 !important;
+}
+
+.title-with-status {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+}
+
+.live-pulse-container {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    background: rgba(0, 255, 163, 0.1) !important;
+    padding: 0.3rem 0.6rem !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(0, 255, 163, 0.2) !important;
+}
+
+.pulse-dot {
+    width: 6px !important;
+    height: 6px !important;
+    background-color: #00ffa3 !important;
+    border-radius: 50% !important;
+    animation: pulse-green 2s infinite !important;
+}
+
+.pulse-label {
+    font-size: 0.6rem !important;
+    font-weight: 800 !important;
+    color: #00ffa3 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+}
+
+@keyframes pulse-green {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(0, 255, 163, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(0, 255, 163, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(0, 255, 163, 0);
+    }
+}
+
+.advisory-title-group {
+    flex-grow: 1 !important;
+}
+
+.advisory-title {
+    margin: 0 !important;
+    font-size: 1.15rem !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    letter-spacing: 1px !important;
+    text-transform: uppercase !important;
+}
+
+.advisory-status {
+    font-size: 0.7rem !important;
+    color: #64748b !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    font-weight: 700 !important;
+    display: block !important;
+    margin-top: 4px !important;
+}
+
+.clinical-seal {
+    color: #00ffa3 !important;
+    opacity: 1 !important;
+    filter: drop-shadow(0 0 12px rgba(0, 255, 163, 0.6)) !important;
+}
+
+.advisory-content {
+    padding: 2.2rem !important;
+    display: flex !important;
+    gap: 1.8rem !important;
+    align-items: flex-start !important;
+    position: relative !important;
+}
+
+.clinical-memo-icon {
+    color: #94a3b8 !important;
+    opacity: 0.4 !important;
+    margin-top: 0.3rem !important;
+    flex-shrink: 0 !important;
+}
+
+#clinical-strategy-text {
+    color: #e2e8f0 !important;
+    line-height: 1.8 !important;
+    font-size: 1.05rem !important;
+    font-family: 'Inter', sans-serif !important;
+    letter-spacing: 0.4px !important;
+    font-weight: 500 !important;
+}
+
+@keyframes slideUpFadePremium {
+    0% {
+        transform: translateY(50px) scale(0.96);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}

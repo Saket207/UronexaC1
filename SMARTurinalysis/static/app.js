@@ -1,5 +1,5 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
-    const dropZone = document.getElementById('drop-zone');
+document.addEventListener('DOMContentLoaded', () => {
+    const dropZone = document.getElementById('dropzone');
     const fileInput = document.getElementById('file-input');
     const previewArea = document.getElementById('preview-area');
     const imagePreview = document.getElementById('image-preview');
@@ -106,7 +106,7 @@
     function startNeuralAnimation() {
         const nodes = document.querySelectorAll('.node');
         const conns = document.querySelectorAll('.conn');
-        const textElement = document.getElementById('processing-text');
+        const textElement = document.querySelector('.processing-text');
 
         let step = 0;
         const processSteps = [
@@ -141,7 +141,7 @@
             }
 
             // Rotate text every 2 ticks (1200ms)
-            if (step % 2 === 0) {
+            if (step % 2 === 0 && textElement) {
                 textElement.innerText = processSteps[Math.floor((step / 2) % processSteps.length)];
             }
             step++;
@@ -151,6 +151,98 @@
     function stopNeuralAnimation() {
         if (window.neuralInterval) clearInterval(window.neuralInterval);
     }
+
+    // --- Web3 State & Config ---
+    const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+    const ABI = ["function mintRecord(uint256 _riskScore, string memory _ipfsHash) public"];
+    let userAccount = null;
+    let lastAnalysisScore = 0;
+    let lastBiomarkers = null;
+    let lastIpfsHash = "bafkreidmq7j3l25m7334...mock";
+    let lastTxHash = null;
+    let lastTimestamp = null;
+
+    const btnConnect = document.getElementById('btn-connect');
+    const btnSecure = document.getElementById('btn-secure-blockchain');
+    const txModal = document.getElementById('tx-modal');
+
+    // --- Connect Wallet ---
+    async function connectWallet() {
+        if (typeof window.ethereum !== 'undefined') {
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                userAccount = accounts[0];
+                btnConnect.innerText = `${userAccount.substring(0, 6)}...${userAccount.substring(38)}`;
+                btnConnect.classList.add('connected');
+            } catch (err) {
+                console.error("Connection failed", err);
+            }
+        } else {
+            alert("MetaMask not detected. Please install the extension.");
+        }
+    }
+
+    if (btnConnect) btnConnect.addEventListener('click', connectWallet);
+
+    // --- Secure Record On-Chain ---
+    async function secureOnBlockchain() {
+        if (!userAccount) {
+            alert("Please connect your wallet first.");
+            return;
+        }
+        if (lastAnalysisScore === 0) {
+            alert("No valid diagnostic data found to secure.");
+            return;
+        }
+
+        try {
+            showTxState('minting');
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+            // Scale score for solidity integer handling
+            const scoreScaled = Math.floor(lastAnalysisScore * 100);
+
+            // Using a mock IPFS hash for this demo
+            const mockCID = "bafkreidmq7j3l25m7334...mock";
+            lastIpfsHash = mockCID;
+
+            const tx = await contract.mintRecord(scoreScaled, mockCID);
+
+            // Update UI to show we are waiting for confirmation
+            document.querySelector('#tx-state-minting p').innerText = "Waiting for block confirmation...";
+
+            const receipt = await tx.wait();
+
+            // Store for manifest
+            lastTxHash = receipt.hash;
+            lastTimestamp = new Date().toLocaleString();
+
+            // Update the receipt display in index.html
+            document.getElementById('display-tx-hash').innerText = receipt.hash;
+            document.getElementById('display-block-num').innerText = `#${receipt.blockNumber}`;
+
+            showTxState('success');
+        } catch (err) {
+            console.error("Blockchain Error", err);
+            showTxState('error');
+        }
+    }
+
+    if (btnSecure) btnSecure.addEventListener('click', secureOnBlockchain);
+
+    function showTxState(state) {
+        txModal.classList.remove('hidden');
+        document.getElementById('tx-state-minting').classList.add('hidden');
+        document.getElementById('tx-state-success').classList.add('hidden');
+        document.getElementById('tx-state-error').classList.add('hidden');
+        document.getElementById(`tx-state-${state}`).classList.remove('hidden');
+    }
+
+    window.closeTxModal = () => {
+        txModal.classList.add('hidden');
+    };
 
     // Analyze Button
     btnAnalyze.addEventListener('click', async () => {
@@ -175,6 +267,10 @@
             stopNeuralAnimation();
 
             if (data.success) {
+                // Store results for blockchain submission
+                lastAnalysisScore = data.results.risk_score || 0;
+                lastBiomarkers = data.results.biomarkers || data.results;
+
                 renderResults(data.results);
 
                 // Show the debug image processed by OpenCV
@@ -366,7 +462,7 @@
             }, stepTime);
 
             if (confidenceBadge) {
-                confidenceBadge.innerText = `${clinicalData.diagnosis_confidence_percent}% Confident`;
+                confidenceBadge.innerText = `${clinicalData.diagnosis_confidence_percent || 0}% Confident`;
             }
             if (clinicalText) {
                 clinicalText.innerHTML = clinicalData.clinical_strategy;
@@ -463,42 +559,314 @@
         });
     }
 
-    // --- Web Speech API Voice Orb ---
-    const voiceOrb = document.getElementById('voice-orb');
-    let synth = window.speechSynthesis;
+    // =====================================================================
+    // --- Empathetic Voice Engine (a11y) ---
+    // =====================================================================
 
+    const voiceOrb = document.getElementById('voice-orb');
+    const synth = window.speechSynthesis;
+
+    // Biomarkers considered "abnormal" if they have these verdict values
+    const ABNORMAL_VERDICTS = new Set([
+        'Positive', 'Abnormal', 'High', 'Large', 'Moderate', 'Small', 'Trace',
+        '2+', '3+', '++', '+++', 'Present'
+    ]);
+
+    /**
+     * Builds a human-readable, empathetic summary of clinical results.
+     * @param {object} biomarkers - Raw biomarker object keyed by name.
+     * @param {number} riskScore  - Numerical risk score (0-100).
+     * @returns {string}
+     */
+    function generateEmpatheticSummary(biomarkers, riskScore) {
+        const lines = [];
+
+        // Opening
+        lines.push("Hello. Your Uronexa scan is complete.");
+
+        // Separate normal from abnormal biomarkers
+        const abnormal = [];
+        const keys = [
+            "Leukocytes", "Nitrite", "Urobilinogen", "Protein", "pH",
+            "Blood", "Specific Gravity", "Ketones", "Bilirubin", "Glucose"
+        ];
+
+        if (biomarkers) {
+            keys.forEach(key => {
+                const data = biomarkers[key];
+                if (!data) return;
+                const verdict = data.result || data.class || 'Unknown';
+                if (ABNORMAL_VERDICTS.has(verdict) ||
+                    (verdict !== 'Negative' && verdict !== 'Normal' && verdict !== 'Unknown' && verdict !== 'N/A')) {
+                    abnormal.push(key);
+                }
+            });
+        }
+
+        // Biomarker summary
+        if (abnormal.length === 0) {
+            lines.push("All of your parameters are within normal ranges.");
+        } else if (abnormal.length === 1) {
+            lines.push(`We detected an elevated reading for ${abnormal[0]}.`);
+        } else {
+            const last = abnormal.pop();
+            lines.push(`We detected elevated levels of ${abnormal.join(', ')}, and ${last}.`);
+        }
+
+        // Risk score
+        lines.push(`Your clinical risk score is ${riskScore} out of 100.`);
+
+        // Triage call to action based on score
+        if (riskScore >= 60) {
+            lines.push("Based on these results, please seek medical evaluation as soon as possible.");
+        } else if (riskScore >= 30) {
+            lines.push("We recommend consulting a healthcare professional for a follow-up.");
+        } else {
+            lines.push("Continue routine monitoring and stay hydrated.");
+        }
+
+        // Web3 CTA
+        lines.push("Press the spacebar to secure this record on the blockchain.");
+
+        return lines.join(' ');
+    }
+
+    /**
+     * Speaks the given text using the Web Speech API.
+     * Cancels any in-progress speech before starting.
+     * @param {string} text
+     */
+    function playAudioSummary(text) {
+        if (!synth) return;
+
+        // Cancel any ongoing speech first (prevents overlap on double-click)
+        synth.cancel();
+
+        if (!text) return;
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9;   // Slightly slower for comprehension
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+
+        // Visual feedback on the orb
+        if (voiceOrb) {
+            utterance.onstart = () => voiceOrb.classList.add('voz-speaking');
+            utterance.onend = () => voiceOrb.classList.remove('voz-speaking');
+            utterance.onerror = () => voiceOrb.classList.remove('voz-speaking');
+            utterance.onpause = () => voiceOrb.classList.remove('voz-speaking');
+        }
+
+        synth.speak(utterance);
+    }
+
+    // --- Bind Voice Orb click ---
     if (voiceOrb) {
         voiceOrb.addEventListener('click', () => {
-            if (!synth) return;
-
-            if (synth.speaking) {
+            // Toggle: if currently speaking, stop
+            if (synth && synth.speaking) {
                 synth.cancel();
                 voiceOrb.classList.remove('voz-speaking');
                 return;
             }
 
-            const textToSpeak = document.getElementById('clinical-strategy-text').innerText;
-            if (!textToSpeak || textToSpeak.includes('Analyzing')) return;
-
-            const utterance = new SpeechSynthesisUtterance(textToSpeak);
-            utterance.rate = 0.95;
-            utterance.pitch = 1.05;
-
-            utterance.onstart = () => voiceOrb.classList.add('voz-speaking');
-            utterance.onend = () => voiceOrb.classList.remove('voz-speaking');
-            utterance.onerror = () => voiceOrb.classList.remove('voz-speaking');
-
-            synth.speak(utterance);
+            // Generate and speak the empathetic summary
+            const summary = generateEmpatheticSummary(lastBiomarkers, lastAnalysisScore);
+            playAudioSummary(summary);
         });
     }
+
+    // --- A11y: Spacebar shortcut while results are visible ---
+    document.addEventListener('keydown', (e) => {
+        const resultsVisible = !resultsSection.classList.contains('hidden');
+        // Spacebar (key === ' ') — ignore if user is typing in an input/textarea
+        if (e.key === ' ' && resultsVisible &&
+            !['INPUT', 'TEXTAREA', 'BUTTON'].includes(document.activeElement.tagName)) {
+            e.preventDefault(); // Prevent page scroll
+
+            if (synth && synth.speaking) {
+                synth.cancel();
+                if (voiceOrb) voiceOrb.classList.remove('voz-speaking');
+            } else {
+                const summary = generateEmpatheticSummary(lastBiomarkers, lastAnalysisScore);
+                playAudioSummary(summary);
+            }
+        }
+    });
+
 
     // --- Doctor Ready FAB ---
     const btnGenerateKey = document.getElementById('btn-generate-key');
-    const qrMock = document.getElementById('qr-mock');
+    const clinicalPortal = document.getElementById('clinical-key-portal');
 
-    if (btnGenerateKey && qrMock) {
+    if (btnGenerateKey && clinicalPortal) {
         btnGenerateKey.addEventListener('click', () => {
-            qrMock.classList.toggle('hidden');
+            const isHidden = clinicalPortal.classList.contains('hidden');
+            if (isHidden) {
+                populateClinicalManifest();
+                clinicalPortal.classList.remove('hidden');
+                clinicalPortal.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                clinicalPortal.classList.add('hidden');
+            }
         });
     }
+
+    function populateClinicalManifest() {
+        const biomarkerKeys = [
+            "Leukocytes", "Nitrite", "Urobilinogen", "Protein", "pH",
+            "Blood", "Specific Gravity", "Ketones", "Bilirubin", "Glucose"
+        ];
+
+        // Helper to get biomarker verdict padded for alignment
+        function getVerdict(key) {
+            if (!lastBiomarkers) return 'PENDING';
+            const d = lastBiomarkers[key];
+            return d ? (d.result || d.class || 'Negative') : 'N/A';
+        }
+
+        const timestamp = lastTimestamp || new Date().toLocaleString();
+        const wallet = userAccount || 'GUEST_UNKNOWN_WALLET';
+        const txHash = lastTxHash || 'Awaiting On-Chain Verification...';
+        const riskScore = lastAnalysisScore;
+
+        // QR Payload: lean plain-text summary (no Unicode, no long hashes)
+        const shortWallet = wallet.length > 12 ? wallet.slice(0, 6) + '...' + wallet.slice(-4) : wallet;
+        const shortTx = txHash.length > 12 ? txHash.slice(0, 8) + '...' : txHash;
+
+        const qrValue = [
+            'URONEXA CLINICAL RECORD',
+            `Date: ${timestamp}`,
+            `Patient: ${shortWallet}`,
+            `TX: ${shortTx}`,
+            `Risk: ${riskScore}/100`,
+            '--- BIOMARKERS ---',
+            `LEU:${getVerdict('Leukocytes')} NIT:${getVerdict('Nitrite')}`,
+            `URO:${getVerdict('Urobilinogen')} PRO:${getVerdict('Protein')}`,
+            `pH:${getVerdict('pH')} BLD:${getVerdict('Blood')}`,
+            `SG:${getVerdict('Specific Gravity')} KET:${getVerdict('Ketones')}`,
+            `BIL:${getVerdict('Bilirubin')} GLU:${getVerdict('Glucose')}`,
+            'SECURED BY URONEXA LEDGER',
+        ].join('\n');
+
+        // 1. Render QR
+        const qrDisplay = document.getElementById('qr-code-display');
+        qrDisplay.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&ecc=L&data=${encodeURIComponent(qrValue)}" alt="Clinical IPFS Key" style="width:100%;height:100%;">`;
+
+        // 2. Populate Manifest panel identifiers
+        document.getElementById('manifest-id').innerText = `ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+        document.getElementById('manifest-time').innerText = timestamp;
+        document.getElementById('manifest-wallet').innerText = wallet;
+        document.getElementById('manifest-tx-hash').innerText = txHash;
+        document.getElementById('manifest-risk').innerText = riskScore;
+
+        // 3. Populate 10-Biomarker Payload grid
+        const payloadContainer = document.getElementById('manifest-payload');
+        if (lastBiomarkers) {
+            payloadContainer.innerHTML = '';
+            biomarkerKeys.forEach(key => {
+                const verdict = getVerdict(key);
+                const isAbnormal = verdict !== 'Negative' && verdict !== 'Normal' && verdict !== 'N/A';
+                const row = document.createElement('div');
+                row.className = 'manifest-row';
+                row.innerHTML = `» ${key}: <span class="${isAbnormal ? 'bio-cyan' : ''}">[${verdict}]</span>`;
+                payloadContainer.appendChild(row);
+            });
+        }
+    }
+    // --- Doctor Verification Portal Modal Logic ---
+    const btnDoctorTerminal = document.getElementById('btn-doctor-terminal');
+    const doctorTerminalModal = document.getElementById('doctor-terminal-modal');
+    const terminalClose = document.getElementById('terminal-close');
+    const terminalBackdrop = document.getElementById('terminal-backdrop');
+
+    if (btnDoctorTerminal) {
+        btnDoctorTerminal.addEventListener('click', () => {
+            doctorTerminalModal.classList.remove('hidden');
+        });
+
+        // Magnetic Icon Effect
+        btnDoctorTerminal.addEventListener('mousemove', (e) => {
+            const rect = btnDoctorTerminal.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            const rotateX = ((y - centerY) / centerY) * -20;
+            const rotateY = ((x - centerX) / centerX) * 20;
+
+            btnDoctorTerminal.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.15)`;
+        });
+
+        btnDoctorTerminal.addEventListener('mouseleave', () => {
+            btnDoctorTerminal.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`;
+        });
+    }
+
+    const closeTerminal = () => doctorTerminalModal.classList.add('hidden');
+    if (terminalClose) terminalClose.addEventListener('click', closeTerminal);
+    if (terminalBackdrop) terminalBackdrop.addEventListener('click', closeTerminal);
+
+    // --- Doctor Verification Portal Logic ---
+    const btnVerify = document.getElementById('btn-verify-data');
+    const inputVerifyHash = document.getElementById('input-verify-hash');
+    const verifyError = document.getElementById('verify-error');
+    const verifyResultsPanel = document.getElementById('verify-results-panel');
+
+    async function verifyOnChainRecord() {
+        const txHash = inputVerifyHash.value.trim();
+
+        if (!txHash.startsWith("0x") || txHash.length !== 66) {
+            verifyError.innerText = "Invalid Transaction Hash format.";
+            verifyError.classList.remove('hidden');
+            verifyResultsPanel.classList.add('hidden');
+            return;
+        }
+
+        verifyError.classList.add('hidden');
+        btnVerify.innerText = "Consulting Ledger...";
+        btnVerify.disabled = true;
+
+        try {
+            // Hardhat Local Provider
+            const provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
+
+            // 1. Fetch Transaction
+            const tx = await provider.getTransaction(txHash);
+            if (!tx) {
+                throw new Error("Hash not found on local network.");
+            }
+
+            // 2. Decode Input Data
+            const contractAbi = ["function mintRecord(uint256 _riskScore, string memory _ipfsHash) public"];
+            const iface = new ethers.Interface(contractAbi);
+            const decoded = iface.parseTransaction({ data: tx.data });
+
+            if (decoded && decoded.name === "mintRecord") {
+                // 3. Get Block for Timestamp
+                const block = await provider.getBlock(tx.blockNumber);
+
+                document.getElementById('verify-block-num').innerText = `#${tx.blockNumber}`;
+                document.getElementById('verify-risk-score').innerText = Number(decoded.args[0]) / 100;
+                document.getElementById('verify-ipfs-hash').innerText = decoded.args[1];
+                document.getElementById('verify-timestamp').innerText = new Date(Number(block.timestamp) * 1000).toLocaleString();
+
+                verifyResultsPanel.classList.remove('hidden');
+            } else {
+                throw new Error("Transaction is not a Uronexa Ledger record.");
+            }
+        } catch (err) {
+            console.error("Verification Error:", err);
+            verifyError.innerText = err.message || "Hash not found on local network.";
+            verifyError.classList.remove('hidden');
+            verifyResultsPanel.classList.add('hidden');
+        } finally {
+            btnVerify.innerText = "View Decoded Data";
+            btnVerify.disabled = false;
+        }
+    }
+
+    if (btnVerify) btnVerify.addEventListener('click', verifyOnChainRecord);
 });

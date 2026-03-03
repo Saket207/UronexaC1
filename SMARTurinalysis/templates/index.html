@@ -4,94 +4,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uronexa Diagnostic Core</title>
-    <!-- Modern Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Uronexa | Clinical AI & Blockchain Ledger</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.11.0/ethers.umd.min.js"></script>
 </head>
 
 <body>
     <div class="app-container">
-
         <header class="header">
-            <div class="logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    <path d="M2 17L12 22L22 17" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    <path d="M2 12L12 17L22 12" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                </svg>
-                <h1>Uronexa</h1>
+            <div class="logo-row">
+                <div class="logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v20M2 12h20M12 5l-7 7 7 7M12 5l7 7-7 7" />
+                    </svg>
+                    <h1>URONEXA</h1>
+                </div>
+                <div class="header-actions" style="display: flex; align-items: center; gap: 1rem;">
+                    <div class="doctor-nav-icon glow-blue-pulse" id="btn-doctor-terminal"
+                        title="Doctor's Decryption Terminal">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M4.8 2.3A.3.3 0 1 0 5 2a.3.3 0 0 0-.2.3Z" />
+                            <path
+                                d="M10 2v2m4-2v2M7 3a5 5 0 0 0-5 5v3a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V8a5 5 0 0 0-5-5z" />
+                            <path d="M12 11v8m-3-3l3 3 3-3" />
+                            <path d="M17 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" />
+                            <path d="M11 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" />
+                            <circle cx="12" cy="11" r="3" stroke-opacity="0.5" />
+                        </svg>
+                    </div>
+                    <button class="btn btn-connect" id="btn-connect">Connect Wallet</button>
+                </div>
             </div>
-            <p class="subtitle">Advanced 1D Matched Filter Analysis</p>
+            <p class="subtitle">Clinical Diagnostic AI • Decentralized Health Ledger</p>
         </header>
 
-        <main class="main-content">
-            <section class="upload-section glass-panel">
-                <h2>Upload Urine Stick</h2>
-                <p>Upload a clear, well-lit photo of your urine test strip for automatic colorimetric analysis.</p>
-
-                <div class="glass-dropzone" id="drop-zone">
+        <main>
+            <section class="upload-section" id="upload-section">
+                <div class="glass-dropzone" id="dropzone">
+                    <div class="scan-line"></div>
                     <div class="ar-reticle">
                         <div class="corner top-left"></div>
                         <div class="corner top-right"></div>
                         <div class="corner bottom-left"></div>
                         <div class="corner bottom-right"></div>
-                        <div class="scan-line"></div>
-
-                        <div class="dropzone-content">
-                            <div class="upload-icon-3d">
-                                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                    <polyline points="17 8 12 3 7 8"></polyline>
-                                    <line x1="12" y1="3" x2="12" y2="15"></line>
-                                </svg>
-                            </div>
-                            <h3 class="upload-title">Initialize Scan Protocol</h3>
-                            <p class="upload-sub">Drag & Drop or Tap to engage optics</p>
-                        </div>
                     </div>
+                    <div class="dropzone-content">
+                        <div class="upload-icon-3d">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                            </svg>
+                        </div>
+                        <p class="upload-title">Initialize Diagnostic Scan</p>
+                        <p class="upload-sub">Drop urine test strip image</p>
+                    </div>
+                    <input type="file" id="file-input" class="hidden" accept="image/*">
 
                     <div class="lighting-meter hidden" id="lighting-meter">
-                        <div class="meter-label">Optic Quality</div>
+                        <span class="meter-label">Ambient Lux Level</span>
                         <div class="meter-bar">
-                            <div class="meter-fill" id="meter-fill" style="width: 0%"></div>
+                            <div class="meter-fill" id="meter-fill"></div>
                         </div>
-                        <div class="meter-status" id="meter-status">Analyzing...</div>
+                        <span class="meter-status" id="meter-status">Analyzing Calibration...</span>
                     </div>
-
-                    <input type="file" id="file-input" accept="image/*" hidden>
                 </div>
 
-                <div class="preview-area hidden" id="preview-area">
-                    <img id="image-preview" src="" alt="Image Preview">
+                <div id="preview-area" class="preview-area hidden mt-4">
+                    <img id="image-preview" src="#" alt="Preview">
                     <div class="action-buttons">
-                        <button class="btn btn-secondary" id="btn-cancel">Cancel</button>
-                        <button class="btn btn-primary" id="btn-analyze">Analyze Colors</button>
+                        <button class="btn btn-primary" id="btn-analyze">Run Neural Analysis</button>
+                        <button class="btn btn-secondary" id="btn-cancel">Discard</button>
                     </div>
                 </div>
 
-                <div class="neural-matrix-container hidden" id="loading-area">
+                <div id="loading-area" class="neural-matrix-container hidden">
                     <div class="neural-matrix">
-                        <svg viewBox="0 0 100 100" class="network-svg">
-                            <line x1="20" y1="50" x2="50" y2="20" class="conn conn-1" />
-                            <line x1="20" y1="50" x2="50" y2="80" class="conn conn-2" />
-                            <line x1="50" y1="20" x2="80" y2="50" class="conn conn-3" />
-                            <line x1="50" y1="80" x2="80" y2="50" class="conn conn-4" />
-                            <line x1="50" y1="50" x2="80" y2="50" class="conn conn-5" />
-                            <line x1="20" y1="50" x2="50" y2="50" class="conn conn-6" />
-
-                            <circle cx="20" cy="50" r="4" class="node node-input" />
-                            <circle cx="50" cy="20" r="4" class="node node-hidden" />
-                            <circle cx="50" cy="50" r="4" class="node node-hidden" />
-                            <circle cx="50" cy="80" r="4" class="node node-hidden" />
-                            <circle cx="80" cy="50" r="4" class="node node-output" />
+                        <svg class="network-svg" id="neural-svg" viewBox="0 0 100 100">
+                            <!-- Matrix nodes will be injected here via JS -->
                         </svg>
                     </div>
-                    <p class="processing-text" id="processing-text">Initiating Neural Analysis...</p>
+                    <p class="processing-text">Processing Extraction Matrix</p>
                 </div>
             </section>
 
@@ -141,7 +137,155 @@
                 <div class="action-buttons mt-4">
                     <button class="btn btn-primary w-full" id="btn-new-test">Start New Test</button>
                 </div>
+
+                <!-- AI Clinical Advisory Card -->
+                <div class="clinical-advisory-card hidden" id="clinical-strategy-box">
+                    <div class="advisory-header">
+                        <div class="physician-avatar">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
+                                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                        </div>
+                        <div class="advisory-title-group">
+                            <div class="title-with-status">
+                                <h3 class="advisory-title">AI Clinical Advisory</h3>
+                                <div class="live-pulse-container">
+                                    <span class="pulse-dot"></span>
+                                    <span class="pulse-label">LIVE Analysis</span>
+                                </div>
+                            </div>
+                            <span class="advisory-status">Physician Consensus Protocol v4.2 // SECURE</span>
+                        </div>
+                        <div class="clinical-seal">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                <path d="m9 12 2 2 4-4" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="advisory-content">
+                        <div class="clinical-memo-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                                <polyline points="14 2 14 8 20 8" />
+                            </svg>
+                        </div>
+                        <div class="memo-text-container">
+                            <p id="clinical-strategy-text">Analyzing clinical data matrix...</p>
+                            <div class="physician-signature">
+                                <span class="sig-label">Digitally Verified by:</span>
+                                <span class="sig-name">Dr. Uronexa AI, MD</span>
+                                <div class="sig-seal">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
+
+            <!-- Doctor Verification Portal Modal -->
+            <div class="biomarker-modal hidden" id="doctor-terminal-modal">
+                <div class="modal-backdrop" id="terminal-backdrop"></div>
+                <div class="modal-content doctor-modal-content glass-panel tilt-effect">
+                    <button class="modal-close" id="terminal-close">&times;</button>
+
+                    <div class="doctor-header"
+                        style="margin-bottom: 2.5rem; text-align: center; position: relative; z-index: 2;">
+                        <div
+                            style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 0.8rem;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00f0ff"
+                                stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                <circle cx="12" cy="11" r="3" stroke-opacity="0.5" />
+                            </svg>
+                            <h2 class="glow-cyan"
+                                style="font-size: 1rem; letter-spacing: 5px; text-transform: uppercase; margin: 0; font-weight: 800;">
+                                Decryption Terminal
+                            </h2>
+                        </div>
+                        <p style="font-size: 0.65rem; color: #64748b; letter-spacing: 2px; font-weight: 600;">
+                            BLOCKCHAIN DIAGNOSTIC AUDIT • SECURE ACCESS ONLY
+                        </p>
+                    </div>
+
+                    <div class="verify-input-container"
+                        style="display: flex; gap: 1rem; margin-bottom: 2rem; position: relative; z-index: 2;">
+                        <div style="flex: 1; position: relative;">
+                            <input type="text" id="input-verify-hash" class="verify-input"
+                                placeholder="PASTE TRANSACTION HASH (0x...)">
+                        </div>
+                        <button class="btn btn-primary" id="btn-verify-data"
+                            style="white-space: nowrap; padding: 0 1.5rem;">
+                            DECODE LEDGER
+                        </button>
+                    </div>
+
+                    <div id="verify-error" class="hidden"
+                        style="color: #ef4444; font-size: 0.8rem; font-family: monospace; text-align: center; margin-bottom: 1.5rem;">
+                    </div>
+
+                    <div id="verify-results-panel" class="hidden results-panel-advanced"
+                        style="position: relative; z-index: 2;">
+                        <div class="ledger-data-grid"
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <div class="data-block">
+                                <label
+                                    style="font-size: 0.6rem; text-transform: uppercase; color: #475569; letter-spacing: 1px;">Consensus
+                                    Block</label>
+                                <div id="verify-block-num"
+                                    style="color: #00f0ff; font-family: monospace; font-weight: 800; font-size: 1.2rem;">
+                                    --</div>
+                            </div>
+                            <div class="data-block" style="text-align: right;">
+                                <label
+                                    style="font-size: 0.6rem; text-transform: uppercase; color: #475569; letter-spacing: 1px;">Integrity
+                                    Status</label>
+                                <div style="color: #00ffa3; font-weight: 800; font-size: 0.8rem;">VERIFIED IMMUTABLE
+                                </div>
+                            </div>
+
+                            <div style="grid-column: span 2; height: 1px; background: rgba(255,255,255,0.05);"></div>
+
+                            <div class="data-block" style="grid-column: span 2;">
+                                <label
+                                    style="font-size: 0.6rem; text-transform: uppercase; color: #475569; letter-spacing: 1px;">Clinical
+                                    Risk Factor</label>
+                                <div style="display: flex; align-items: baseline; gap: 0.5rem;">
+                                    <div id="verify-risk-score"
+                                        style="font-size: 2.5rem; font-weight: 900; color: white;">--</div>
+                                    <span style="color: #475569; font-weight: 800; font-size: 1rem;">%</span>
+                                </div>
+                            </div>
+
+                            <div style="grid-column: span 2; height: 1px; background: rgba(255,255,255,0.05);"></div>
+
+                            <div class="data-block" style="grid-column: span 2;">
+                                <label
+                                    style="font-size: 0.6rem; text-transform: uppercase; color: #475569; letter-spacing: 1px;">IPFS
+                                    CID</label>
+                                <div id="verify-ipfs-hash"
+                                    style="font-family: monospace; font-size: 0.7rem; color: #94a3b8; word-break: break-all;">
+                                    --</div>
+                            </div>
+
+                            <div class="data-footer"
+                                style="grid-column: span 2; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem; margin-top: 0.5rem;">
+                                <div id="verify-timestamp" style="font-size: 0.8rem; color: #64748b;">--</div>
+                                <div class="terminal-indicator"
+                                    style="font-size: 0.6rem; color: #475569; border: 1px solid rgba(71, 85, 105, 0.3); padding: 2px 8px; border-radius: 4px;">
+                                    HARDHAT_NODE</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -169,6 +313,53 @@
         </div>
     </div>
 
+    <!-- Blockchain Transaction Modal -->
+    <div class="tx-modal hidden" id="tx-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content glass-panel">
+            <div id="tx-state-minting" class="modal-state">
+                <div class="spinner"></div>
+                <h3 class="glow-cyan">Securing On-Chain...</h3>
+                <p>Negotiating with Sepolia Ledger consensus...</p>
+            </div>
+            <div id="tx-state-success" class="modal-state hidden">
+                <div class="success-check">✓</div>
+                <h3 class="glow-green">Immutability Secured</h3>
+
+                <div class="receipt-box"
+                    style="text-align: left; padding: 1rem; background: rgba(0, 255, 163, 0.05); border-radius: 8px; margin: 1rem 0; border: 1px solid rgba(0, 255, 163, 0.1);">
+                    <div style="margin-bottom: 0.8rem;">
+                        <small style="color: #666; text-transform: uppercase; font-size: 0.6rem;">Transaction
+                            Hash</small>
+                        <div id="display-tx-hash"
+                            style="font-family: monospace; font-size: 0.75rem; color: #888; word-break: break-all;">--
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <div>
+                            <small style="color: #666; text-transform: uppercase; font-size: 0.6rem;">Block</small>
+                            <div id="display-block-num"
+                                style="font-family: monospace; font-size: 0.75rem; color: #00ffa3;">--</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <small style="color: #666; text-transform: uppercase; font-size: 0.6rem;">Network</small>
+                            <div style="font-family: monospace; font-size: 0.75rem; color: #888;">Hardhat Local</div>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="font-size: 0.8rem; color: #666;">Health record permanently stored on the decentralized ledger.
+                </p>
+                <button class="btn btn-primary mt-4 w-full" onclick="closeTxModal()">Dismiss Portal</button>
+            </div>
+            <div id="tx-state-error" class="modal-state hidden">
+                <h3 style="color: #ef4444;">Transaction Rejected</h3>
+                <p>MetaMask signature failed or network error.</p>
+                <button class="btn btn-secondary mt-4 w-full" onclick="closeTxModal()">Retry</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Accessibility Voice Orb -->
     <div class="voice-assistant-orb hidden" id="voice-orb" title="Replay Clinical Strategy">
         <svg viewBox="0 0 24 24" fill="none" class="orb-icon" stroke="currentColor" stroke-width="2"
@@ -183,22 +374,76 @@
 
     <!-- Doctor Ready SECURE KEY FAB -->
     <div class="doctor-fab-container hidden" id="doctor-fab-container">
+        <button class="btn btn-secure-ready mb-2" id="btn-secure-blockchain">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            <span>Secure On Blockchain</span>
+        </button>
         <button class="doctor-fab" id="btn-generate-key">
             <span>Generate Secure Clinical Key</span>
             <div class="ripple-effect"></div>
         </button>
-        <div class="qr-mock hidden" id="qr-mock">
-            <p>Ready for physician review.</p>
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=UronexaClinicalKey" alt="Secure QR">
-            <small>Link expires in 24 hours</small>
+        <div class="clinical-key-portal hidden" id="clinical-key-portal">
+            <div class="portal-grid">
+                <!-- Left: Dynamic QR Section -->
+                <div class="qr-container glass-portal">
+                    <div class="qr-wrapper" id="qr-code-display">
+                        <!-- Dynamic QR will be injected here -->
+                        <div class="qr-placeholder-glow"></div>
+                    </div>
+                    <p class="qr-caption">Scan to view raw decentralized clinical JSON on IPFS.</p>
+                </div>
+
+                <!-- Right: Clinical Manifest -->
+                <div class="manifest-container glass-portal">
+                    <div class="manifest-header">
+                        <span class="manifest-badge">OFFICIAL MEDICAL RECEIPT</span>
+                        <div class="manifest-id" id="manifest-id">--</div>
+                    </div>
+
+                    <div class="manifest-body monospace">
+                        <div class="manifest-row"> [SYSTEM]: <span class="bio-cyan">URONEXA DECENTRALIZED
+                                DIAGNOSTICS</span> </div>
+                        <div class="manifest-row"> [TIMESTAMP]: <span id="manifest-time">AWAITING TX...</span> </div>
+                        <div class="manifest-row"> [PATIENT IDENTITY]: <span id="manifest-wallet">PENDING...</span>
+                        </div>
+                        <div class="manifest-row"> [BLOCKCHAIN TX HASH]: <span id="manifest-tx-hash"
+                                class="tx-truncate">AWAITING...</span> </div>
+                        <div class="manifest-row"> [CLINICAL RISK SCORE]: <span id="manifest-risk">--</span>/100 </div>
+
+                        <div class="manifest-divider"></div>
+
+                        <div class="payload-header">DECRYPTED BIOCHEMICAL PAYLOAD:</div>
+                        <div id="manifest-payload" class="payload-grid">
+                            <!-- 10 Biomarkers will be injected here -->
+                            <div class="manifest-row">> Leukocytes: [AWAITING]</div>
+                            <div class="manifest-row">> Nitrite: [AWAITING]</div>
+                            <div class="manifest-row">> Urobilinogen: [AWAITING]</div>
+                            <div class="manifest-row">> Protein: [AWAITING]</div>
+                            <div class="manifest-row">> pH Level: [AWAITING]</div>
+                            <div class="manifest-row">> Blood: [AWAITING]</div>
+                            <div class="manifest-row">> Specific Gravity: [AWAITING]</div>
+                            <div class="manifest-row">> Ketones: [AWAITING]</div>
+                            <div class="manifest-row">> Bilirubin: [AWAITING]</div>
+                            <div class="manifest-row">> Glucose: [AWAITING]</div>
+                        </div>
+                    </div>
+
+                    <div class="manifest-footer">
+                        <div class="integrity-seal">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                <path d="m9 12 2 2 4-4" />
+                            </svg>
+                            LEDGER INTEGRITY VERIFIED
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Move the clinical-strategy-box OUT of diagnostic-panel so it slies up from the bottom -->
-    <div class="clinical-strategy-overlay hidden" id="clinical-strategy-box">
-        <h3>AI Clinical Strategy</h3>
-        <p id="clinical-strategy-text">Analyzing extraction matrix...</p>
-    </div>
 
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
